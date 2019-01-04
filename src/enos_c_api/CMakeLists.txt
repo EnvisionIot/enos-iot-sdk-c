@@ -1,0 +1,23 @@
+STRING(REGEX REPLACE ".*/(.*)" "\\1" CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR})
+SET(CURRENT_LIB_NAME "${CURRENT_DIR_NAME}")
+#INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/common_tool")
+#INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/common_tool/3rd")
+
+##file(GLOB_RECURSE DIR_LIB_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "common_tool/3rd/*")
+#SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+#FOREACH(subdir ${SUBDIRS})
+##    message("${subdir}")
+#    IF(NOT subdir MATCHES "CMakeFiles")
+#        AUX_SOURCE_DIRECTORY(${subdir} DIR_LIB_SRCS) 
+#    ENDIF()
+#ENDFOREACH()
+##MESSAGE("DIR_LIB_SRCS=${DIR_LIB_SRCS}")
+
+AUX_SOURCE_DIRECTORY(. DIR_LIB_SRCS) 
+ADD_LIBRARY(${CURRENT_LIB_NAME} SHARED ${DIR_LIB_SRCS})
+
+IF(ENABLE_TPM)
+    TARGET_LINK_LIBRARIES(${CURRENT_LIB_NAME} crypto ssl tpm2tss tss2-esys tss2-tcti-device tss2-tcti-mssim tss2-sys tss2-mu paho-mqtt3cs cjson iconv curl pthread)
+ELSE()
+    TARGET_LINK_LIBRARIES(${CURRENT_LIB_NAME} crypto ssl paho-mqtt3cs cjson iconv curl pthread)
+ENDIF()

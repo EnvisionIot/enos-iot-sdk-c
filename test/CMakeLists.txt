@@ -1,0 +1,10 @@
+SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/dst/test")
+
+SUBDIRLIST(SUBDIRS ${CMAKE_CURRENT_SOURCE_DIR})
+
+FOREACH(subdir ${SUBDIRS})
+#    message("${subdir}")
+    IF(NOT subdir MATCHES "CMakeFiles")
+        ADD_SUBDIRECTORY(${subdir})
+    ENDIF()
+ENDFOREACH()
