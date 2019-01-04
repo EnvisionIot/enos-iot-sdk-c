@@ -6,14 +6,14 @@ This article instructs how to prepare your development environment to use the En
     - [Compile](#compile)
 - [Feature List](#features)
 - Sample Code
-    - [RAS encryption and decryption](#ras-encyrpt-decrypt)
-    - [RSA encryption and decryption with TPM2 chips](#ras-encyrpt-decrypt-tpm2)
+    - [RSA encryption and decryption](#rsa-encyrpt-decrypt)
+    - [RSA encryption and decryption with TPM2 chips](#rsa-encyrpt-decrypt-tpm2)
     - [Generate certificate request](#csr)
     - [Hash](#hash)
     - [Connect to EnOS Cloud](#connect)
     - [Connect to EnOS Cloud through SSL/TLS](#connect-ssl)
     - [Add Topology of Sub-devices](#add-topology)
-    - [Connect Sub-devices to EnOS Cloud](#connect-subdevice)
+    - [Proxy sub-devices to log into EnOS Cloud](#connect-subdevice)
     - [Report Measure Points](#report-measure-points)
     - [Invoke Device Services](#invoke-service)
     - [Get Thing Model](#get-model)
@@ -91,7 +91,7 @@ The EnOS IoT SDK for C supports the following functions:
     - Enable, disable and delete devices or sub-devices
 
 - enos_restful_api: APIs for EnOS Cloud services
-    - Apply for, revoke and list certificate
+    - Apply, revoke and list certificate
     - Create, delete, update and get product
     - Download file
     - Get thing model
@@ -103,7 +103,7 @@ The following sample codes instruct how to use the EnOS IoT SDK for C.
 ### enos_encrypt_api
 
 <a name="ras-encyrpt-decrypt"></a>
-#### RAS encryption and decryption
+#### RSA encryption and decryption
 The sample code encrypts data using public key and decrypts data using private key:
 
 ```
@@ -248,7 +248,7 @@ int rsa_public_encrypt_private_decrypt_test()
     return 0;
 }
 ```
-<a name="ras-encyrpt-decrypt-tpm2"></a>
+<a name="rsa-encyrpt-decrypt-tpm2"></a>
 #### RSA encryption and decryption with TPM2 chips
 
 ```
@@ -798,7 +798,7 @@ int enos_sub_dev_add_topo_asyn_test()
 ```
 
 <a name="connect-subdevice"></a>
-#### Connect Sub-devices to EnOS Cloud
+#### Proxy sub-devices to log into EnOS Cloud
 
 ```
 void enos_sub_dev_login_asyn_test_cl_cb(void *user, char *cause)
