@@ -297,6 +297,10 @@ struct ENOS_C_API_DLL_EXPORT enos_createProduct_input
 	int  dataType;
 	int  nodeType;
 	int  authType;
+	int  optional_flag;//set the flag of optional para used in the url. 
+										//bit0:dataType;
+										//bit1:nodeType;
+										//bit2:authType
 };
 
 /************************************************************
@@ -714,6 +718,8 @@ struct ENOS_C_API_DLL_EXPORT enos_revokeCertificateByAssetId_input
 {
 	char assetId[ENOS_GENERAL_BUF_MAX];
 	char certSN[ENOS_GENERAL_BUF_MAX];
+	int  optional_flag; //set the flag of optional para used in the url.
+											//bit0:certSN
 };
 /************************************************************
  * name:enos_restful_api_syn_revokeCertificateByAssetId
@@ -754,6 +760,8 @@ struct ENOS_C_API_DLL_EXPORT enos_revokeCertificateByDeviceKey_input
 	char productKey[ENOS_GENERAL_BUF_MAX];
 	char deviceKey[ENOS_GENERAL_BUF_MAX];
 	char certSN[ENOS_GENERAL_BUF_MAX];
+	int  optional_flag; //set the flag of optional para used in the url.
+											//bit0:certSN
 };
 /************************************************************
  * name:enos_restful_api_syn_revokeCertificateByDeviceKey

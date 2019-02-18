@@ -1188,9 +1188,12 @@ extern int enos_restful_api_syn_createProduct(struct enos_restful_api_struct *en
   cJSON_AddItemToObject(array_obj, "productName", cJSON_CreateString(input->productName));
   cJSON_AddItemToObject(array_obj, "productDesc", cJSON_CreateString(input->productDesc));
   cJSON_AddItemToObject(array_obj, "modelId", cJSON_CreateString(input->modelId));
-  cJSON_AddItemToObject(array_obj, "dataType", cJSON_CreateNumber(input->dataType));
-  cJSON_AddItemToObject(array_obj, "nodeType", cJSON_CreateNumber(input->nodeType));
-  cJSON_AddItemToObject(array_obj, "authType", cJSON_CreateNumber(input->authType));
+  if((input->optional_flag)&0x01)
+  	cJSON_AddItemToObject(array_obj, "dataType", cJSON_CreateNumber(input->dataType));
+  if((input->optional_flag)&0x02)
+  	cJSON_AddItemToObject(array_obj, "nodeType", cJSON_CreateNumber(input->nodeType));
+  if((input->optional_flag)&0x04)
+ 		cJSON_AddItemToObject(array_obj, "authType", cJSON_CreateNumber(input->authType));
   
   body = cJSON_Print(array_obj);
   
@@ -1236,9 +1239,12 @@ extern int enos_restful_api_asyn_createProduct(struct enos_restful_api_struct *e
   cJSON_AddItemToObject(array_obj, "productName", cJSON_CreateString(input->productName));
   cJSON_AddItemToObject(array_obj, "productDesc", cJSON_CreateString(input->productDesc));
   cJSON_AddItemToObject(array_obj, "modelId", cJSON_CreateString(input->modelId));
-  cJSON_AddItemToObject(array_obj, "dataType", cJSON_CreateNumber(input->dataType));
-  cJSON_AddItemToObject(array_obj, "nodeType", cJSON_CreateNumber(input->nodeType));
-  cJSON_AddItemToObject(array_obj, "authType", cJSON_CreateNumber(input->authType));
+  if((input->optional_flag)&0x01)
+  	cJSON_AddItemToObject(array_obj, "dataType", cJSON_CreateNumber(input->dataType));
+  if((input->optional_flag)&0x02)
+  	cJSON_AddItemToObject(array_obj, "nodeType", cJSON_CreateNumber(input->nodeType));
+  if((input->optional_flag)&0x04)
+  	cJSON_AddItemToObject(array_obj, "authType", cJSON_CreateNumber(input->authType));
   
   body = cJSON_Print(array_obj);
   
@@ -1844,7 +1850,7 @@ extern int enos_restful_api_syn_revokeCertificateByAssetId(struct enos_restful_a
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  if(strlen(input->certSN) == 0)
+  if(input->optional_flag == 0)
   	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
@@ -1889,7 +1895,7 @@ extern int enos_restful_api_asyn_revokeCertificateByAssetId(struct enos_restful_
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  if(strlen(input->certSN) == 0)
+  if(input->optional_flag == 0)
   	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
@@ -1946,7 +1952,7 @@ extern int enos_restful_api_syn_revokeCertificateByDeviceKey(struct enos_restful
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  if(strlen(input->certSN) == 0)
+  if(input->optional_flag == 0)
   	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
@@ -1991,7 +1997,7 @@ extern int enos_restful_api_asyn_revokeCertificateByDeviceKey(struct enos_restfu
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  if(strlen(input->certSN) == 0)
+  if(input->optional_flag == 0)
   	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
