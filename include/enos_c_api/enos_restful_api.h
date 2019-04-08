@@ -173,7 +173,25 @@ ENOS_C_API_DLL_EXPORT extern int enos_restful_api_free_output(struct enos_restfu
  *        <0        fail
  * tips:
  ************************************************************/
-ENOS_C_API_DLL_EXPORT extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int count, char *accessKey,char *secretKey, char *sign, int sign_max, int *sign_len);
+//ENOS_C_API_DLL_EXPORT extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int count, char *accessKey,char *secretKey, char *sign, int sign_max, int *sign_len);
+
+/************************************************************
+ * name:enos_calc_sign_with_body_restful
+ * desc:calculate the sign in the request url
+ *
+ * para:[in] para_value_p  an array of struct enos_para_value
+ * para:[in] count     		the number of entries in the para_value_p array
+ * para:[in] body     	  body ptr, can be NULL
+ * para:[in] accessKey    accessKey buffer
+ * para:[in] secretKey    secretKey buffer
+ * para:[out] sign     		sign result buffer
+ * para:[in] sign_max     max length of sign result
+ * para:[out] sign_len    ength of sign result
+ * return:0         success
+ *        <0        fail
+ * tips:
+ ************************************************************/
+ENOS_C_API_DLL_EXPORT extern int enos_calc_sign_with_body_restful(struct enos_para_value *para_value_p, int count, char *body, char *accessKey,char *secretKey, char *sign, int sign_max, int *sign_len);
 //<------Comm function
 
 

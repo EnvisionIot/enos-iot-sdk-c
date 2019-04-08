@@ -49,6 +49,41 @@ static long long enos_getNowtime_by_ms()
  	 return msec_now;	 
 }
 
+static int replace_all_c(char *str_in, char *str_out, int str_out_max, char *old_value, char *new_value)
+{
+    char *str_in_ptr1 = str_in;
+    char *str_in_ptr2 = NULL;
+    char *str_out_ptr = str_out;
+    while(1)
+    {
+        str_in_ptr2 = strstr(str_in_ptr1, old_value);
+        if(str_in_ptr2 == NULL)
+        {
+            break;
+        }
+        
+        if(str_out_ptr - str_out + str_in_ptr2 - str_in_ptr1 + strlen(new_value) >= str_out_max)
+        {
+            return -1;
+        }
+        memcpy(str_out_ptr, str_in_ptr1, str_in_ptr2 - str_in_ptr1);
+        str_out_ptr += str_in_ptr2 - str_in_ptr1;
+        memcpy(str_out_ptr, new_value, strlen(new_value));
+        str_out_ptr += strlen(new_value);
+        
+        str_in_ptr1 = str_in_ptr2 + strlen(old_value);
+    }
+    
+    if(str_out_ptr - str_out + strlen(str_in_ptr1) >= str_out_max)
+    {
+        return -1;
+    }
+    memcpy(str_out_ptr, str_in_ptr1, strlen(str_in_ptr1));
+    str_out_ptr += strlen(str_in_ptr1);
+
+	return 0;
+}
+
 //url request callBack function
 static size_t enos_url_Callback( void *buffer, size_t size, size_t nmemb, struct enos_restful_api_output *output ) 
 {
@@ -884,7 +919,108 @@ extern int enos_restful_api_free_output(struct enos_restful_api_output *output)
 	return 0;
 }
 
-extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int count, char *accessKey,char *secretKey, char *sign, int sign_max, int *sign_len)
+//extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int count, char *accessKey,char *secretKey, char *sign, int sign_max, int *sign_len)
+//{
+//    if((para_value_p == NULL) || (sign == NULL) || (sign_max <= 0) || (sign_len == NULL) || (accessKey == NULL)|| (secretKey == NULL) || (count <= 0))
+//    {
+//        enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]para error(file=%s, function=%s, line=%d)\n", __FILE__, __FUNCTION__, __LINE__);
+//        return -1;
+//    }
+//    
+//    struct enos_para_value *para_value_p_tmp = NULL;
+//    para_value_p_tmp = (struct enos_para_value *)malloc(sizeof(struct enos_para_value) * count);
+//    if(para_value_p_tmp == NULL)
+//    {
+//        enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]para_value_p_tmp malloc error(file=%s, function=%s, line=%d)\n", __FILE__, __FUNCTION__, __LINE__);
+//        return -1;
+//    }
+//    memcpy(para_value_p_tmp, para_value_p, sizeof(struct enos_para_value) * count);
+//    
+//    int ret = 0;
+//    ret = ctool_general_merge_sort((void *)para_value_p_tmp, \
+//            (int)(sizeof(struct enos_para_value)), \
+//            count, \
+//            enos_para_value_compare_fun, \
+//            NULL, \
+//            NULL);
+//    if(ret < 0)
+//    {
+//        enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]ctool_general_merge_sort error(file=%s, function=%s, line=%d)\n", __FILE__, __FUNCTION__, __LINE__);
+//        free(para_value_p_tmp);
+//        para_value_p_tmp = NULL;
+//        return -1;
+//    }
+//    
+//    int sign_src_buf_max = sizeof(struct enos_para_value) * count + strlen(accessKey) + strlen(secretKey) + 10;
+//    char *sign_src_buf = (char *)malloc(sign_src_buf_max);
+//    if(sign_src_buf == NULL)
+//    {
+//        enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]sign_src_buf malloc error(file=%s, function=%s, line=%d)\n", __FILE__, __FUNCTION__, __LINE__);
+//        free(para_value_p_tmp);
+//        para_value_p_tmp = NULL;
+//        return -1;
+//    }
+//    memset(sign_src_buf, 0, sign_src_buf_max);
+//    
+//    int ii = 0;
+//    char *sign_src_buf_ptr = sign_src_buf;
+//    int current_len = 0;
+//    //accessKey
+//    memcpy(sign_src_buf_ptr, accessKey, strlen(accessKey));
+//    sign_src_buf_ptr += strlen(accessKey);
+//    //para
+//    for(ii = 0; ii < count; ii++)
+//    {
+//        memcpy(sign_src_buf_ptr, para_value_p_tmp[ii].para_name, strlen(para_value_p_tmp[ii].para_name));
+//        sign_src_buf_ptr += strlen(para_value_p_tmp[ii].para_name);
+//        memcpy(sign_src_buf_ptr, para_value_p_tmp[ii].para_value, strlen(para_value_p_tmp[ii].para_value));
+//        sign_src_buf_ptr += strlen(para_value_p_tmp[ii].para_value);
+//    }
+//    //secretKey
+//    memcpy(sign_src_buf_ptr, secretKey, strlen(secretKey));
+//    sign_src_buf_ptr += strlen(secretKey);
+//    
+//    current_len = (int)(sign_src_buf_ptr - sign_src_buf);
+//    
+//    
+//    char sign1[256];
+//    int sign_max1 = (int)(sizeof(sign1));
+//    int sign_len1 = 0;
+//    memset(sign1, 0, sign_max1);
+//    ret = enos_hash(sign_src_buf, current_len, "sha256", sign1, sign_max1, &sign_len1);
+//    if(ret < 0)
+//    {
+//        enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]enos_hash error(file=%s, function=%s, line=%d)\n", __FILE__, __FUNCTION__, __LINE__);
+//        free(para_value_p_tmp);
+//        free(sign_src_buf);
+//        return -1;
+//    }
+//    
+//    if(sign_max <= sign_len1 * 2)
+//    {
+//        enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]sign_max=%d < need_len=%d error(file=%s, function=%s, line=%d)\n", sign_max, sign_len1 * 2 + 1, __FILE__, __FUNCTION__, __LINE__);
+//        free(para_value_p_tmp);
+//        para_value_p_tmp = NULL;
+//        free(sign_src_buf);
+//        return -1;
+//    }
+//    
+//    char *sign_ptr = sign;
+//    for(ii = 0; ii < sign_len1; ii++)
+//    {
+//        snprintf(sign_ptr, sign_max - (sign_ptr - sign), "%02hhX", (unsigned char)(sign1[ii]));
+//        sign_ptr += 2;
+//    }
+//    
+//    *sign_len = strlen(sign);
+//        
+//    free(para_value_p_tmp);
+//    free(sign_src_buf);
+//    
+//    return 0;
+//}
+
+extern int enos_calc_sign_with_body_restful(struct enos_para_value *para_value_p, int count, char *body, char *accessKey,char *secretKey, char *sign, int sign_max, int *sign_len)
 {
     if((para_value_p == NULL) || (sign == NULL) || (sign_max <= 0) || (sign_len == NULL) || (accessKey == NULL)|| (secretKey == NULL) || (count <= 0))
     {
@@ -916,7 +1052,13 @@ extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int coun
         return -1;
     }
     
-    int sign_src_buf_max = sizeof(struct enos_para_value) * count + strlen(accessKey) + strlen(secretKey) + 10;
+    int body_len = 0;
+    if(body != NULL)
+    {
+        body_len = strlen(body);
+    }
+    
+    int sign_src_buf_max = sizeof(struct enos_para_value) * count + body_len + strlen(accessKey) + strlen(secretKey) + 10;
     char *sign_src_buf = (char *)malloc(sign_src_buf_max);
     if(sign_src_buf == NULL)
     {
@@ -941,6 +1083,12 @@ extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int coun
         memcpy(sign_src_buf_ptr, para_value_p_tmp[ii].para_value, strlen(para_value_p_tmp[ii].para_value));
         sign_src_buf_ptr += strlen(para_value_p_tmp[ii].para_value);
     }
+    //body
+    if(body != NULL)
+    {
+        memcpy(sign_src_buf_ptr, body, strlen(body));
+        sign_src_buf_ptr += strlen(body);
+    }
     //secretKey
     memcpy(sign_src_buf_ptr, secretKey, strlen(secretKey));
     sign_src_buf_ptr += strlen(secretKey);
@@ -952,7 +1100,7 @@ extern int enos_calc_sign_restful(struct enos_para_value *para_value_p, int coun
     int sign_max1 = (int)(sizeof(sign1));
     int sign_len1 = 0;
     memset(sign1, 0, sign_max1);
-    ret = enos_hash(sign_src_buf, current_len, "sha1", sign1, sign_max1, &sign_len1);
+    ret = enos_hash(sign_src_buf, current_len, "sha256", sign1, sign_max1, &sign_len1);
     if(ret < 0)
     {
         enos_printf(NULL, ENOS_LOG_ERROR, "[RESTFUL_API]enos_hash error(file=%s, function=%s, line=%d)\n", __FILE__, __FUNCTION__, __LINE__);
@@ -1013,7 +1161,7 @@ extern int enos_restful_api_syn_getThingModel(struct enos_restful_api_struct *en
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   sprintf(request_url,"%s/modelService/thingModels/%s?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->thingModelId,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
@@ -1047,7 +1195,7 @@ extern int enos_restful_api_asyn_getThingModel(struct enos_restful_api_struct *e
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
       
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1096,7 +1244,7 @@ extern int enos_restful_api_syn_getProduct(struct enos_restful_api_struct *enos_
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   sprintf(request_url,"%s/connectService/products/%s?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
@@ -1131,7 +1279,7 @@ extern int enos_restful_api_asyn_getProduct(struct enos_restful_api_struct *enos
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1180,9 +1328,6 @@ extern int enos_restful_api_syn_createProduct(struct enos_restful_api_struct *en
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
-    
-  sprintf(request_url,"%s/connectService/products?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
   array_obj = cJSON_CreateObject();
   cJSON_AddItemToObject(array_obj, "productName", cJSON_CreateString(input->productName));
@@ -1196,6 +1341,9 @@ extern int enos_restful_api_syn_createProduct(struct enos_restful_api_struct *en
  		cJSON_AddItemToObject(array_obj, "authType", cJSON_CreateNumber(input->authType));
   
   body = cJSON_Print(array_obj);
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+    
+  sprintf(request_url,"%s/connectService/products?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
   ret = enos_url_postMethod_syn(output,request_url,body,timeout);
   
@@ -1233,8 +1381,7 @@ extern int enos_restful_api_asyn_createProduct(struct enos_restful_api_struct *e
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
-      
+  
   array_obj = cJSON_CreateObject();
   cJSON_AddItemToObject(array_obj, "productName", cJSON_CreateString(input->productName));
   cJSON_AddItemToObject(array_obj, "productDesc", cJSON_CreateString(input->productDesc));
@@ -1247,6 +1394,8 @@ extern int enos_restful_api_asyn_createProduct(struct enos_restful_api_struct *e
   	cJSON_AddItemToObject(array_obj, "authType", cJSON_CreateNumber(input->authType));
   
   body = cJSON_Print(array_obj);
+  
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1294,7 +1443,7 @@ extern int enos_restful_api_syn_deleteProduct(struct enos_restful_api_struct *en
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   sprintf(request_url,"%s/connectService/products/%s?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
@@ -1329,7 +1478,7 @@ extern int enos_restful_api_asyn_deleteProduct(struct enos_restful_api_struct *e
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1378,9 +1527,6 @@ extern int enos_restful_api_syn_updateProduct(struct enos_restful_api_struct *en
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
-    
-  sprintf(request_url,"%s/connectService/products/%s?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
   array_obj = cJSON_CreateObject();
   cJSON_AddItemToObject(array_obj, "productName", cJSON_CreateString(input->productName));
@@ -1388,6 +1534,10 @@ extern int enos_restful_api_syn_updateProduct(struct enos_restful_api_struct *en
   cJSON_AddItemToObject(array_obj, "dynamic", cJSON_CreateBool(input->dynamic));
   
   body = cJSON_Print(array_obj);
+  
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+    
+  sprintf(request_url,"%s/connectService/products/%s?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
   ret = enos_url_putMethod_syn(output,request_url,body,timeout);
   
@@ -1425,14 +1575,15 @@ extern int enos_restful_api_asyn_updateProduct(struct enos_restful_api_struct *e
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
-      
+  
   array_obj = cJSON_CreateObject();
   cJSON_AddItemToObject(array_obj, "productName", cJSON_CreateString(input->productName));
   cJSON_AddItemToObject(array_obj, "productDesc", cJSON_CreateString(input->productDesc));
   cJSON_AddItemToObject(array_obj, "dynamic", cJSON_CreateBool(input->dynamic));
   
   body = cJSON_Print(array_obj);
+  
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1478,20 +1629,37 @@ extern int enos_restful_api_syn_applyCertificateByAssetId(struct enos_restful_ap
   long long msec_now = enos_getNowtime_by_ms();
   longlongToChar(msec_now,longstr);
   
-  sprintf(para[0].para_name,"requestTimestamp");
-  sprintf(para[0].para_value,longstr);
-  sprintf(para[1].para_name,"orgId");
-  sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+//  sprintf(para[0].para_name,"requestTimestamp");
+//  sprintf(para[0].para_value,longstr);
+//  sprintf(para[1].para_name,"orgId");
+//  sprintf(para[1].para_value,enos_ras_p->orgId);
+//  
+//  body_len = strlen(input->csr)+10;
+//  body = (char *)malloc(body_len);
+//  memset(body,0,body_len);
+//  body[0]='"';
+//  memcpy(&body[1],input->csr,strlen(input->csr));
+//  body[strlen(input->csr)+1]='"';
+  
+    char csr2[8192];
+    memset(csr2, 0, sizeof(csr2));
+    replace_all_c(input->csr, csr2, (int)(sizeof(csr2)), "\n", "\\n");
+
+    sprintf(para[0].para_name,"requestTimestamp");
+    sprintf(para[0].para_value,longstr);
+    sprintf(para[1].para_name,"orgId");
+    sprintf(para[1].para_value,enos_ras_p->orgId);
+    
+    body_len = strlen(csr2)+10;
+    body = (char *)malloc(body_len);
+    memset(body,0,body_len);
+    body[0]='"';
+    memcpy(&body[1],csr2,strlen(csr2));
+    body[strlen(csr2)+1]='"';
+  
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   sprintf(request_url,"%s/connectService/devices/%s/certificates/apply?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->assetId,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
-  
-  body_len = strlen(input->csr)+10;
-  body = (char *)malloc(body_len);
-  memset(body,0,body_len);
-  body[0]='"';
-  memcpy(&body[1],input->csr,strlen(input->csr));
-  body[strlen(input->csr)+1]='"';
  
   ret = enos_url_postMethod_syn(output,request_url,body,timeout);
   
@@ -1524,18 +1692,35 @@ extern int enos_restful_api_asyn_applyCertificateByAssetId(struct enos_restful_a
   long long msec_now = enos_getNowtime_by_ms();
   longlongToChar(msec_now,longstr);
   
-  sprintf(para[0].para_name,"requestTimestamp");
-  sprintf(para[0].para_value,longstr);
-  sprintf(para[1].para_name,"orgId");
-  sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+//  sprintf(para[0].para_name,"requestTimestamp");
+//  sprintf(para[0].para_value,longstr);
+//  sprintf(para[1].para_name,"orgId");
+//  sprintf(para[1].para_value,enos_ras_p->orgId);
+//  
+//  body_len = strlen(input->csr)+10;
+//  body = (char *)malloc(body_len);
+//  memset(body,0,body_len);
+//  body[0]='"';
+//  memcpy(&body[1],input->csr,strlen(input->csr));
+//  body[strlen(input->csr)+1]='"';
   
-  body_len = strlen(input->csr)+10;
-  body = (char *)malloc(body_len);
-  memset(body,0,body_len);
-  body[0]='"';
-  memcpy(&body[1],input->csr,strlen(input->csr));
-  body[strlen(input->csr)+1]='"';
+    char csr2[8192];
+    memset(csr2, 0, sizeof(csr2));
+    replace_all_c(input->csr, csr2, (int)(sizeof(csr2)), "\n", "\\n");
+
+    sprintf(para[0].para_name,"requestTimestamp");
+    sprintf(para[0].para_value,longstr);
+    sprintf(para[1].para_name,"orgId");
+    sprintf(para[1].para_value,enos_ras_p->orgId);
+    
+    body_len = strlen(csr2)+10;
+    body = (char *)malloc(body_len);
+    memset(body,0,body_len);
+    body[0]='"';
+    memcpy(&body[1],csr2,strlen(csr2));
+    body[strlen(csr2)+1]='"';
+  
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1581,21 +1766,41 @@ extern int enos_restful_api_syn_applyCertificateByDeviceKey(struct enos_restful_
   long long msec_now = enos_getNowtime_by_ms();
   longlongToChar(msec_now,longstr);
   
-  sprintf(para[0].para_name,"requestTimestamp");
-  sprintf(para[0].para_value,longstr);
-  sprintf(para[1].para_name,"orgId");
-  sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+//  sprintf(para[0].para_name,"requestTimestamp");
+//  sprintf(para[0].para_value,longstr);
+//  sprintf(para[1].para_name,"orgId");
+//  sprintf(para[1].para_value,enos_ras_p->orgId);
+//  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+//    
+//  sprintf(request_url,"%s/connectService/products/%s/devices/%s/certificates/apply?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,input->deviceKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
+//  
+//  body_len = strlen(input->csr)+10;
+//  body = (char *)malloc(body_len);
+//  memset(body,0,body_len);
+//  body[0]='"';
+//  memcpy(&body[1],input->csr,strlen(input->csr));
+//  body[strlen(input->csr)+1]='"';
+
+    char csr2[8192];
+    memset(csr2, 0, sizeof(csr2));
+    replace_all_c(input->csr, csr2, (int)(sizeof(csr2)), "\n", "\\n");
+
+    sprintf(para[0].para_name,"requestTimestamp");
+    sprintf(para[0].para_value,longstr);
+    sprintf(para[1].para_name,"orgId");
+    sprintf(para[1].para_value,enos_ras_p->orgId);
     
-  sprintf(request_url,"%s/connectService/products/%s/devices/%s/certificates/apply?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,input->deviceKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
-  
-  body_len = strlen(input->csr)+10;
-  body = (char *)malloc(body_len);
-  memset(body,0,body_len);
-  body[0]='"';
-  memcpy(&body[1],input->csr,strlen(input->csr));
-  body[strlen(input->csr)+1]='"';
- 
+    body_len = strlen(csr2)+10;
+    body = (char *)malloc(body_len);
+    memset(body,0,body_len);
+    body[0]='"';
+    memcpy(&body[1],csr2,strlen(csr2));
+    body[strlen(csr2)+1]='"';
+    
+    enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+    
+    sprintf(request_url,"%s/connectService/products/%s/devices/%s/certificates/apply?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,input->deviceKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
+    
   ret = enos_url_postMethod_syn(output,request_url,body,timeout);
   
   free(body);
@@ -1627,18 +1832,37 @@ extern int enos_restful_api_asyn_applyCertificateByDeviceKey(struct enos_restful
   long long msec_now = enos_getNowtime_by_ms();
   longlongToChar(msec_now,longstr);
   
-  sprintf(para[0].para_name,"requestTimestamp");
-  sprintf(para[0].para_value,longstr);
-  sprintf(para[1].para_name,"orgId");
-  sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+//  sprintf(para[0].para_name,"requestTimestamp");
+//  sprintf(para[0].para_value,longstr);
+//  sprintf(para[1].para_name,"orgId");
+//  sprintf(para[1].para_value,enos_ras_p->orgId);
+//  
+//  body_len = strlen(input->csr)+10;
+//  body = (char *)malloc(body_len);
+//  memset(body,0,body_len);
+//  body[0]='"';
+//  memcpy(&body[1],input->csr,strlen(input->csr));
+//  body[strlen(input->csr)+1]='"';
+
+    char csr2[8192];
+    memset(csr2, 0, sizeof(csr2));
+    replace_all_c(input->csr, csr2, (int)(sizeof(csr2)), "\n", "\\n");
+
+    sprintf(para[0].para_name,"requestTimestamp");
+    sprintf(para[0].para_value,longstr);
+    sprintf(para[1].para_name,"orgId");
+    sprintf(para[1].para_value,enos_ras_p->orgId);
+    
+    body_len = strlen(csr2)+10;
+    body = (char *)malloc(body_len);
+    memset(body,0,body_len);
+    body[0]='"';
+    memcpy(&body[1],csr2,strlen(csr2));
+    body[strlen(csr2)+1]='"';
   
-  body_len = strlen(input->csr)+10;
-  body = (char *)malloc(body_len);
-  memset(body,0,body_len);
-  body[0]='"';
-  memcpy(&body[1],input->csr,strlen(input->csr));
-  body[strlen(input->csr)+1]='"';
+  enos_calc_sign_with_body_restful(para,2,body,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  
+  
   
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1686,7 +1910,7 @@ extern int enos_restful_api_syn_listCertificatesByAssetId(struct enos_restful_ap
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   sprintf(request_url,"%s/connectService/devices/%s/certificates/list?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->assetId,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
@@ -1721,7 +1945,7 @@ extern int enos_restful_api_asyn_listCertificatesByAssetId(struct enos_restful_a
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1768,7 +1992,7 @@ extern int enos_restful_api_syn_listCertificatesByDeviceKey(struct enos_restful_
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   sprintf(request_url,"%s/connectService/products/%s/devices/%s/certificates/list?accessKey=%s&requestTimestamp=%s&sign=%s&orgId=%s",enos_ras_p->requestURL,input->productKey,input->deviceKey,enos_ras_p->accessKey,longstr,sign,enos_ras_p->orgId);
   
@@ -1803,7 +2027,7 @@ extern int enos_restful_api_asyn_listCertificatesByDeviceKey(struct enos_restful
   sprintf(para[0].para_value,longstr);
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
-  enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
     
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
 	if(asyn_para == NULL)
@@ -1851,12 +2075,12 @@ extern int enos_restful_api_syn_revokeCertificateByAssetId(struct enos_restful_a
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
   if(input->optional_flag == 0)
-  	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
   	sprintf(para[2].para_name,"certSN");
   	sprintf(para[2].para_value,input->certSN);
-  	enos_calc_sign_restful(para,3,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,3,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   }
   
   if(strlen(input->certSN) == 0) 
@@ -1896,12 +2120,12 @@ extern int enos_restful_api_asyn_revokeCertificateByAssetId(struct enos_restful_
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
   if(input->optional_flag == 0)
-  	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
   	sprintf(para[2].para_name,"certSN");
   	sprintf(para[2].para_value,input->certSN);
-  	enos_calc_sign_restful(para,3,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,3,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   }
     
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));
@@ -1953,12 +2177,12 @@ extern int enos_restful_api_syn_revokeCertificateByDeviceKey(struct enos_restful
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
   if(input->optional_flag == 0)
-  	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
   	sprintf(para[2].para_name,"certSN");
   	sprintf(para[2].para_value,input->certSN);
-  	enos_calc_sign_restful(para,3,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,3,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   }
   
   if(strlen(input->certSN) == 0) 
@@ -1998,12 +2222,12 @@ extern int enos_restful_api_asyn_revokeCertificateByDeviceKey(struct enos_restfu
   sprintf(para[1].para_name,"orgId");
   sprintf(para[1].para_value,enos_ras_p->orgId);
   if(input->optional_flag == 0)
-  	enos_calc_sign_restful(para,2,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,2,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   else
   {
   	sprintf(para[2].para_name,"certSN");
   	sprintf(para[2].para_value,input->certSN);
-  	enos_calc_sign_restful(para,3,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
+  	enos_calc_sign_with_body_restful(para,3,NULL,enos_ras_p->accessKey,enos_ras_p->secretKey,sign,sizeof(sign),&sign_len);
   }
     
   asyn_para = (struct enos_url_asyn_para_struct *)malloc(sizeof(struct enos_url_asyn_para_struct));

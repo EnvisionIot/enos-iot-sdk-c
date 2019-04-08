@@ -48,6 +48,8 @@ Where, the commands and parameters are explained as follows:
 
 2. Use `PLATFORM_DEFINE=<platform type>` to choose build and target platform. The format of platform type is `os_arch_desc_bits_local-or-cross`, for example: 
    - linux_x86_normal_64_local
+   - linux_armv7l_moxa_32_local
+   - linux_x86_centos6_32_local
    - win_x86_mingw_32_local
             
 3. Use `-G "xxx"` to choose different CMake result, for example:

@@ -3403,7 +3403,7 @@ int enos_generate_csr()
     snprintf(input_info.L_city, sizeof(input_info.L_city), "%s", ENOS_DEFAULT_REQ_L);
     snprintf(input_info.O_organization, sizeof(input_info.O_organization), "%s", ENOS_DEFAULT_REQ_O);
     snprintf(input_info.OU_organizationunit, sizeof(input_info.OU_organizationunit), "%s", ENOS_DEFAULT_REQ_OU);
-    snprintf(input_info.CN_commonname, sizeof(input_info.CN_commonname), "%s", "device_SN");
+    snprintf(input_info.CN_commonname, sizeof(input_info.CN_commonname), "%s", "fjdklfhdsfhkjds");
     
     ret = enos_generate_cert_req(req_path, &input_info, pkey);
     if(ret < 0)
@@ -3540,9 +3540,10 @@ int enos_mqtt_api_csr_test()
 	enos_restful_api_set_orgId(my_enos_restful_api,org_id);
 	
 	struct enos_applyCertificateByDeviceKey_input input;
-	sprintf(input.productKey,"rZWlw2DK");
-	sprintf(input.deviceKey,"FR3V3sucNW");
-	input.csr = csr2;
+	sprintf(input.productKey,"bQBK85tM");
+	sprintf(input.deviceKey,"1EtyL9EZ7J");
+	//input.csr = csr2;
+	input.csr = csr1;
 	struct enos_restful_api_output *output = NULL;
 	struct enos_applyCertificate_data *data = NULL;
 	
@@ -3601,9 +3602,9 @@ int enos_mqtt_api_tls_connect_test()
     int ret = 0;
     char *address = "ssl://10.27.20.142:18883";
     //char *address = "beta-iot-as-mqtt-cn4.eniot.io:18883";
-    char *gw_product_key = "rZWlw2DK";
-    char *gw_device_key = "FR3V3sucNW";
-    char *gw_device_secret = "3Mj3GIyq6oLqzApePCLS";
+    char *gw_product_key = "bQBK85tM";
+    char *gw_device_key = "1EtyL9EZ7J";
+    char *gw_device_secret = "chG0XIyXyduG7GbHA29j";
     char *cloud_charset = "UTF-8";
     char *app_charset = "UTF-8";
     char *user = "abc123";
