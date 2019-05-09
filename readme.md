@@ -42,6 +42,20 @@ To compile in **Release** mode:
     make //or use "make VERBOSE=1" to get more make informations
 ```
 
+To Cross Compile in **Debug** mode:
+```
+    //you can use your own CMAKE_C_COMPILER and CMAKE_CXX_COMPILER value
+    cmake -D PLATFORM_DEFINE=linux_mipsel_openwrt_32_cross -D DEBUG_MODE=ON -D CMAKE_C_COMPILER=/home/software/cross_compile/toolchain-mipsel_24kc_gcc-7.3.0_musl/toolchain-mipsel_24kc_gcc-7.3.0_musl/bin/mipsel-openwrt-linux-gcc -D CMAKE_CXX_COMPILER=/home/software/cross_compile/toolchain-mipsel_24kc_gcc-7.3.0_musl/toolchain-mipsel_24kc_gcc-7.3.0_musl/bin/mipsel-openwrt-linux-g++ .
+    make //or use "make VERBOSE=1" to get more make informations
+```
+
+To Cross Compile in **Release** mode:
+```
+    //you can use your own CMAKE_C_COMPILER and CMAKE_CXX_COMPILER value
+    cmake -D PLATFORM_DEFINE=linux_mipsel_openwrt_32_cross -D DEBUG_MODE=OFF -D CMAKE_C_COMPILER=/home/software/cross_compile/toolchain-mipsel_24kc_gcc-7.3.0_musl/toolchain-mipsel_24kc_gcc-7.3.0_musl/bin/mipsel-openwrt-linux-gcc -D CMAKE_CXX_COMPILER=/home/software/cross_compile/toolchain-mipsel_24kc_gcc-7.3.0_musl/toolchain-mipsel_24kc_gcc-7.3.0_musl/bin/mipsel-openwrt-linux-g++ .
+    make //or use "make VERBOSE=1" to get more make informations
+```
+
 Where, the commands and parameters are explained as follows:
 
 1. Compile result `dir: dst`
@@ -51,6 +65,7 @@ Where, the commands and parameters are explained as follows:
    - linux_armv7l_moxa_32_local
    - linux_x86_centos6_32_local
    - win_x86_mingw_32_local
+   - linux_mipsel_openwrt_32_cross
             
 3. Use `-G "xxx"` to choose different CMake result, for example:
    ```
