@@ -76,7 +76,10 @@ extern "C"
 
 #include "pthread.h"
 #include "cjson/cJSON.h"
+#if defined(DISABLE_ICONV)
+#else
 #include "iconv/iconv.h"
+#endif
 
 //log level
 enum ENOS_LOG_LEVEL

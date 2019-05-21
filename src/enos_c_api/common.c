@@ -94,62 +94,76 @@ extern int enos_char_code_convert(char *from_charset, char *to_charset, char *in
             return 0;
         }
     }
-
-    iconv_t fd = iconv_open(to_charset, from_charset);
-    if(fd == NULL)
-    {
-        return -1;
-    }
-
-    int ret = 0;
-    char *pin = (char *)inbuf;
-
-    char *outbuf_temp = NULL;
-    int outbuf_temp_max = inlen * 6;
-    outbuf_temp = (char *)malloc(outbuf_temp_max);
-    if(outbuf_temp == NULL)
-    {
-        iconv_close(fd);
-        return -1;
-    }
-    memset(outbuf_temp, 0, outbuf_temp_max);
-
-    char *outbuf_temp_p = outbuf_temp;
-    size_t inlen_size_t = (size_t)inlen;
-    size_t outlen_size_t = (size_t)outbuf_temp_max;
-    #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
-        //ret = iconv(fd, (const char **)&pin, &inlen_size_t, &outbuf_temp_p, &outlen_size_t);
-        ret = iconv(fd, &pin, &inlen_size_t, &outbuf_temp_p, &outlen_size_t);
+    
+    #if defined(DISABLE_ICONV)
+        if(inlen >= outbuf_max_len)
+        {
+            return -1;
+        }
+        else
+        {
+            memset(outbuf, 0, outbuf_max_len);
+            memcpy(outbuf, inbuf, inlen);
+            *out_len = inlen;
+            return 0;
+        }
     #else
-        ret = iconv(fd, &pin, &inlen_size_t, &outbuf_temp_p, &outlen_size_t);
-    #endif
-    if(ret < 0)
-    {
+        iconv_t fd = iconv_open(to_charset, from_charset);
+        if(fd == NULL)
+        {
+            return -1;
+        }
+    
+        int ret = 0;
+        char *pin = (char *)inbuf;
+    
+        char *outbuf_temp = NULL;
+        int outbuf_temp_max = inlen * 6;
+        outbuf_temp = (char *)malloc(outbuf_temp_max);
+        if(outbuf_temp == NULL)
+        {
+            iconv_close(fd);
+            return -1;
+        }
+        memset(outbuf_temp, 0, outbuf_temp_max);
+    
+        char *outbuf_temp_p = outbuf_temp;
+        size_t inlen_size_t = (size_t)inlen;
+        size_t outlen_size_t = (size_t)outbuf_temp_max;
+        #if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
+            //ret = iconv(fd, (const char **)&pin, &inlen_size_t, &outbuf_temp_p, &outlen_size_t);
+            ret = iconv(fd, &pin, &inlen_size_t, &outbuf_temp_p, &outlen_size_t);
+        #else
+            ret = iconv(fd, &pin, &inlen_size_t, &outbuf_temp_p, &outlen_size_t);
+        #endif
+        if(ret < 0)
+        {
+            iconv_close(fd);
+            free(outbuf_temp);
+            return -1;
+        }
+    
+        int dst_len = outbuf_temp_max - (int)outlen_size_t;
+        if(dst_len < 0)
+        {
+            iconv_close(fd);
+            free(outbuf_temp);
+            return -1;
+        }
+    
+        if(dst_len >= outbuf_max_len)
+        {
+            iconv_close(fd);
+            free(outbuf_temp);
+            return -1;
+        }
+        memset(outbuf, 0, outbuf_max_len);
+        memcpy(outbuf, outbuf_temp, dst_len);
+        *out_len = dst_len;
+    
         iconv_close(fd);
         free(outbuf_temp);
-        return -1;
-    }
-
-    int dst_len = outbuf_temp_max - (int)outlen_size_t;
-    if(dst_len < 0)
-    {
-        iconv_close(fd);
-        free(outbuf_temp);
-        return -1;
-    }
-
-    if(dst_len >= outbuf_max_len)
-    {
-        iconv_close(fd);
-        free(outbuf_temp);
-        return -1;
-    }
-    memset(outbuf, 0, outbuf_max_len);
-    memcpy(outbuf, outbuf_temp, dst_len);
-    *out_len = dst_len;
-
-    iconv_close(fd);
-    free(outbuf_temp);
+    #endif//#if defined(DISABLE_ICONV)
 
     return 0;
 }
